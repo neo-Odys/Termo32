@@ -56,16 +56,14 @@ static void MX_USART2_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-typedef enum{
-	FONT_12x24 = 0,
-	FONT_9x24 = 1,
-	FONT_9x17 = 2,
-	FONT_8x16 = 3,
-	FONT_16x18 = 4
-}FontType_t;
+#include "images.h"
 
-void set_font(uint8_t selected_font){
-	uint8_t command_font_select[] = {0x1b, 0x4d, selected_font};
+typedef enum {
+	FONT_12x24 = 0, FONT_9x24 = 1, FONT_9x17 = 2, FONT_8x16 = 3, FONT_16x18 = 4
+} FontType_t;
+
+void set_font(uint8_t selected_font) {
+	uint8_t command_font_select[] = { 0x1b, 0x4d, selected_font };
 	HAL_UART_Transmit(&huart2, command_font_select, 3, 100);
 
 }
@@ -102,40 +100,50 @@ int main(void) {
 	MX_USART2_UART_Init();
 	/* USER CODE BEGIN 2 */
 
-
-
 	// INITIALIZE
 	uint8_t command_init[] = { 0x1B, 0x40 };
-	HAL_UART_Transmit(&huart2, command_init, 2, 100);
+	HAL_UART_Transmit(&huart2, command_init, 2, 1000);
 	HAL_Delay(100);
+	//56 szerokości, 0 mode
+	uint8_t command_image_mode[] = { 0x1B, 0x2A, 0x00, 56, 0 };
+	HAL_UART_Transmit(&huart2, command_image_mode, 5, 1000);
 
+	//darth vader low quality bardzo 16x28
+	const uint8_t epd_bitmap_darth_vader [] = {
+		0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x3f, 0x00, 0x00, 0x01, 0x07, 0x6f, 0xff,
+		0xff, 0xff, 0xff, 0xff, 0xe1, 0x73, 0xf3, 0xf3, 0xfb, 0xfd, 0xfd, 0xfd, 0xff, 0xff, 0xff, 0xff,
+		0xff, 0xff, 0xff, 0xff, 0xfc, 0x90, 0x80, 0xb8, 0xf8, 0x98, 0xfd, 0xf8, 0xfd, 0xfb, 0xff, 0xff,
+		0xff, 0xff, 0x0f, 0x0f, 0x07, 0x07, 0x01, 0x00
+	};
+	uint8_t image_size = sizeof(epd_bitmap_darth_vader) / sizeof(uint8_t);
+	HAL_UART_Transmit(&huart2, epd_bitmap_darth_vader, image_size, 1000);
 
-
-
-
+	uint8_t command[] = {
+	  0x1B, 0x33, 0x00, // odtęp pomiędzy - zero
+	  0x0A				//nowa linia
+	};
+	uint8_t size = sizeof(command) / sizeof(uint8_t);
+	HAL_UART_Transmit(&huart2, command, size, 100);
 
 	/*   TESTOWANIE KROPECZEK
-	// ZERO SPACING
-	uint8_t command_zero_spacing[] = { 0x1B, 0x33, 0x00 };
-	HAL_UART_Transmit(&huart2, command_zero_spacing, 3, 100);
 
-	// SET
-	for(int i = 0; i < 5; i++){
-		set_font(i);
-		char text_tell_font[] = "Aktualny font numer: ";
-		HAL_UART_Transmit(&huart2, (uint8_t*) text_tell_font, strlen(text_tell_font), 1000);
-		uint8_t font_number = '0' + i;
-		HAL_UART_Transmit(&huart2, (uint8_t*) &font_number, 1, 1000);
-		char LF = '\n';
-		HAL_UART_Transmit(&huart2, (uint8_t*)&LF, 1, 1000);
+	 // SET
+	 for(int i = 0; i < 5; i++){
+	 set_font(i);
+	 char text_tell_font[] = "Aktualny font numer: ";
+	 HAL_UART_Transmit(&huart2, (uint8_t*) text_tell_font, strlen(text_tell_font), 1000);
+	 uint8_t font_number = '0' + i;
+	 HAL_UART_Transmit(&huart2, (uint8_t*) &font_number, 1, 1000);
+	 char LF = '\n';
+	 HAL_UART_Transmit(&huart2, (uint8_t*)&LF, 1, 1000);
 
-		char text_test[] = "--- - - -_ _ _ __ . . . ...\n";
-		HAL_UART_Transmit(&huart2, (uint8_t*) text_test, strlen(text_test), 1000);
-	}
+	 char text_test[] = "--- - - -_ _ _ __ . . . ...\n";
+	 HAL_UART_Transmit(&huart2, (uint8_t*) text_test, strlen(text_test), 1000);
+	 }
 
-	/
+	 */
 
-	 /* USER CODE END 2 */
+	/* USER CODE END 2 */
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
